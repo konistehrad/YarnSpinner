@@ -467,9 +467,15 @@ namespace Yarn {
 				return p.NextSymbolIs (TokenType.OptionStart);
 			}
 
+			// setter link metadata
+			internal string destinationVariableName { get; private set; }
+			internal Expression valueExpression { get; private set; }
+			internal TokenType operation { get; private set; }
+
 			internal string destination { get; private set;}
 			internal string label { get; private set;}
 
+			public bool IsSetterLink { get { return destinationVariableName != null; } }
 
 			internal OptionStatement(ParseNode parent, Parser p) : base(parent, p) {
 
@@ -502,6 +508,15 @@ namespace Yarn {
 					destination = firstString;
 				}
 
+				if( p.NextSymbolIs(TokenType.OptionSetDelimit) ) {
+					p.ExpectSymbol(TokenType.OptionSetDelimit);
+
+					destinationVariableName = p.ExpectSymbol(TokenType.Variable).value as string;
+					operation = p.ExpectSymbol(AssignmentStatement.validOperators).type;
+					valueExpression = Expression.Parse(this, p);
+				}
+					
+
 				// Parse the closing ]]
 				p.ExpectSymbol(TokenType.OptionEnd);
 			}
@@ -509,11 +524,18 @@ namespace Yarn {
 
 			internal override string PrintTree (int indentLevel)
 			{
+				string result;
 				if (label != null) {
-					return Tab (indentLevel, string.Format ("Option: \"{0}\" -> {1}", label, destination));
+					result = Tab (indentLevel, string.Format ("Option: \"{0}\" -> {1}", label, destination));
 				} else {
-					return Tab (indentLevel, string.Format ("Option: -> {0}", destination));
+					result = Tab (indentLevel, string.Format ("Option: -> {0}", destination));
 				}
+
+				if (this.IsSetterLink) {
+					result += string.Format ("[{0} {1} {2}]", destinationVariableName, operation, valueExpression);
+				}
+
+				return result;
 			}
 		}
 
@@ -1087,7 +1109,7 @@ namespace Yarn {
 
 			internal TokenType operation { get; private set; }
 
-			private static TokenType[] validOperators = {
+			internal static TokenType[] validOperators = {
 				TokenType.EqualToOrAssign,
 				TokenType.AddAssign,
 				TokenType.MinusAssign,
