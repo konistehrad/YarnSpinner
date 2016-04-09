@@ -56,6 +56,7 @@
     <Compile Include="Compiler.cs" />
     <Compile Include="Value.cs" />
     <Compile Include="Analyser.cs" />
+    <Compile Include="ObjectCopier.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

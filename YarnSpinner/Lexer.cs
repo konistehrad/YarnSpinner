@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
@@ -106,6 +107,7 @@ namespace Yarn {
 		// Option syntax ("[[Let's go here|Destination]]")
 		OptionStart, // [[
 		OptionDelimit, // |
+		OptionSetDelimit, // ][
 		OptionEnd, // ]]
 
 		// Command types (specially recognised command word)
@@ -169,6 +171,7 @@ namespace Yarn {
 	}
 	
 	// A parsed token.
+	[Serializable]
 	internal class Token {
 
 		// The token itself
@@ -204,6 +207,7 @@ namespace Yarn {
 
 	internal class Lexer {
 
+		[Serializable]
 		internal class LexerState {
 
 			private Dictionary<TokenType, string> patterns;
@@ -268,8 +272,13 @@ namespace Yarn {
 
 			public bool setTrackNextIndentation = false;
 
+			public LexerState Clone() {
+				return Yarn.Utils.ObjectCopier.Clone<LexerState> (this);
+			}
 			
 		}
+
+		[Serializable]
 		internal class TokenRule {
 			public Regex regex = null;
 
@@ -290,6 +299,10 @@ namespace Yarn {
 			public override string ToString ()
 			{
 				return string.Format (string.Format ("[TokenRule: {0} - {1}]", type, this.regex));
+			}
+
+			public TokenRule Clone() {
+				return Yarn.Utils.ObjectCopier.Clone<TokenRule>(this);
 			}
 
 		}
@@ -353,6 +366,7 @@ namespace Yarn {
 
 			patterns[TokenType.OptionStart] = @"\[\[";
 			patterns[TokenType.OptionEnd] = @"\]\]";
+			patterns[TokenType.OptionSetDelimit] = @"\]\[";
 			patterns[TokenType.OptionDelimit] = @"\|";
 
 			patterns[TokenType.Identifier] = @"[a-zA-Z0-9_:\.]+";
@@ -383,28 +397,35 @@ namespace Yarn {
 			states ["command"].AddTransition (TokenType.Else);
 			states ["command"].AddTransition (TokenType.ElseIf, "expression");
 			states ["command"].AddTransition (TokenType.EndIf);
-			states ["command"].AddTransition (TokenType.Set, "assignment");
+			states ["command"].AddTransition (TokenType.Set, "command-assignment");
 			states ["command"].AddTransition (TokenType.EndCommand,  "base", delimitsText: true);
 			states ["command"].AddTransition (TokenType.Identifier, "command-or-expression");
 			states ["command"].AddTextRule (TokenType.Text);
 
 			states ["command-or-expression"] = new LexerState (patterns);
-			states ["command-or-expression"].AddTransition (TokenType.LeftParen, "expression");
+			states ["command-or-expression"].AddTransition (TokenType.LeftParen, "command-expression");
 			states ["command-or-expression"].AddTransition (TokenType.EndCommand, "base", delimitsText:true);
 			states ["command-or-expression"].AddTextRule (TokenType.Text);
 
+			// XXX: find a way to reuse these somehow
+			states ["command-assignment"] = new LexerState (patterns);
+			states ["command-assignment"].AddTransition(TokenType.Variable);
+			states ["command-assignment"].AddTransition(TokenType.EqualToOrAssign, "command-expression");
+			states ["command-assignment"].AddTransition(TokenType.AddAssign, "command-expression");
+			states ["command-assignment"].AddTransition(TokenType.MinusAssign, "command-expression");
+			states ["command-assignment"].AddTransition(TokenType.MultiplyAssign, "command-expression");
+			states ["command-assignment"].AddTransition(TokenType.DivideAssign, "command-expression");
 
-			states ["assignment"] = new LexerState (patterns);
-			states ["assignment"].AddTransition(TokenType.Variable);
-			states ["assignment"].AddTransition(TokenType.EqualToOrAssign, "expression");
-			states ["assignment"].AddTransition(TokenType.AddAssign, "expression");
-			states ["assignment"].AddTransition(TokenType.MinusAssign, "expression");
-			states ["assignment"].AddTransition(TokenType.MultiplyAssign, "expression");
-			states ["assignment"].AddTransition(TokenType.DivideAssign, "expression");
-
+			// XXX: find a way to reuse these somehow
+			states ["link-assignment"] = new LexerState (patterns);
+			states ["link-assignment"].AddTransition(TokenType.Variable);
+			states ["link-assignment"].AddTransition(TokenType.EqualToOrAssign, "link-expression");
+			states ["link-assignment"].AddTransition(TokenType.AddAssign, "link-expression");
+			states ["link-assignment"].AddTransition(TokenType.MinusAssign, "link-expression");
+			states ["link-assignment"].AddTransition(TokenType.MultiplyAssign, "link-expression");
+			states ["link-assignment"].AddTransition(TokenType.DivideAssign, "link-expression");
 
 			states ["expression"] = new LexerState (patterns);
-			states ["expression"].AddTransition(TokenType.EndCommand, "base");
 			states ["expression"].AddTransition(TokenType.Number);
 			states ["expression"].AddTransition(TokenType.String);
 			states ["expression"].AddTransition(TokenType.LeftParen);
@@ -431,15 +452,23 @@ namespace Yarn {
 			states ["expression"].AddTransition(TokenType.Null);
 			states ["expression"].AddTransition(TokenType.Identifier);
 
+			states ["command-expression"] = states ["expression"].Clone ();
+			states ["command-expression"].AddTransition(TokenType.EndCommand, "base");
 
 			states ["link"] = new LexerState (patterns);
 			states ["link"].AddTransition (TokenType.OptionEnd, "base", delimitsText:true);
+			states ["link"].AddTransition (TokenType.OptionSetDelimit, "link-assignment", delimitsText:true);
 			states ["link"].AddTransition (TokenType.OptionDelimit, "link-destination", delimitsText:true);
 			states ["link"].AddTextRule (TokenType.Text);
 
 			states ["link-destination"] = new LexerState (patterns);
 			states ["link-destination"].AddTransition (TokenType.Identifier);
+			states ["link-destination"].AddTransition (TokenType.OptionSetDelimit, "link-assignment");
 			states ["link-destination"].AddTransition (TokenType.OptionEnd, "base");
+
+			states ["link-expression"] = states ["expression"].Clone ();
+			states ["link-expression"].AddTransition(TokenType.OptionEnd, "base");
+
 
 			defaultState = states ["base"];
 		}
