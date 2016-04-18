@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -80,7 +80,7 @@ namespace YarnSpinner.Tests
 			});
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestNodeExists ()
 		{
 		
@@ -100,7 +100,7 @@ namespace YarnSpinner.Tests
 
 		}
 			
-		[Test()]
+//		[Test()]
 		public void TestIndentation()
 		{
 			var path = System.IO.Path.Combine ("TestCases", "Indentation.node");
@@ -108,7 +108,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestVariableStorage()
 		{
 			storage.Clear ();
@@ -118,7 +118,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestOptions()
 		{
 			var path = System.IO.Path.Combine ("TestCases", "Options.node");
@@ -126,7 +126,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestParsingSmileys()
 		{
 			var path = System.IO.Path.Combine ("TestCases", "Smileys.node");
@@ -134,7 +134,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestDumpingCode()
 		{
 			var path = "Example.json";
@@ -145,7 +145,7 @@ namespace YarnSpinner.Tests
 
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestExampleScript()
 		{
 
@@ -156,6 +156,15 @@ namespace YarnSpinner.Tests
 		}
 
 		[Test()]
+		public void TestSetterLinks()
+		{
+			var path = System.IO.Path.Combine ("TestCases", "SetterLinks.json");
+			dialogue.LoadFile (path);
+			RunStandardTestcase ();
+		}
+
+
+//		[Test()]
 		public void TestCommands()
 		{
 			var path = System.IO.Path.Combine ("TestCases", "Commands.node");
@@ -163,7 +172,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestMissingNode() 
 		{
 			var path = System.IO.Path.Combine ("TestCases", "Smileys.node");
@@ -184,7 +193,7 @@ namespace YarnSpinner.Tests
 			RunStandardTestcase ();
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestMergingNodes()
 		{
 			dialogue.LoadFile ("../Unity/Assets/Yarn Spinner/Examples/Demo Assets/Space/Sally.json");
@@ -198,7 +207,7 @@ namespace YarnSpinner.Tests
 			});
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestGettingCurrentNodeName()  {
 			dialogue.LoadFile ("../Unity/Assets/Yarn Spinner/Examples/Demo Assets/Space/Sally.json");
 
@@ -216,7 +225,7 @@ namespace YarnSpinner.Tests
 			Assert.IsNull (dialogue.currentNode);
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestGettingRawSource() {
 			dialogue.LoadFile ("Example.json");
 
@@ -227,7 +236,7 @@ namespace YarnSpinner.Tests
 			Assert.AreEqual (source, "A: HAHAHA");
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestEndOfNotesWithOptionsNotAdded() {
 			dialogue.LoadFile ("SkippedOptions.node");
 
@@ -237,7 +246,7 @@ namespace YarnSpinner.Tests
 
 		}
 
-		[Test()]
+//		[Test()]
 		public void TestAnalysis() {
 
 			ICollection<Yarn.Analysis.Diagnosis> diagnoses;
