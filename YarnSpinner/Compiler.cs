@@ -248,6 +248,9 @@ namespace Yarn
 
 		CompileFlags flags;
 
+		internal int optionNodeId = 0;
+		internal IList<Node> optionEvalNodes = new List<Node> ();
+
 		internal Program program { get; private set; }
 
 		internal Compiler (string programName)
@@ -256,6 +259,8 @@ namespace Yarn
 		}
 
 		internal void CompileNode(Parser.Node node) {
+			optionNodeId = 0;
+			optionEvalNodes.Clear ();
 
 			if (program.nodes.ContainsKey(node.name)) {
 				throw new ArgumentException ("Duplicate node name " + node.name);
@@ -312,6 +317,10 @@ namespace Yarn
 			}
 
 			program.nodes [compiledNode.name] = compiledNode;
+
+			foreach( var optionEvalNode in optionEvalNodes ){ 
+				program.nodes [optionEvalNode.name] = optionEvalNode;
+			}
 		}
 
 		private int labelCount = 0;
@@ -522,6 +531,17 @@ namespace Yarn
 		void GenerateCode(Node node, Parser.OptionStatement statement) {
 
 			var destination = statement.destination;
+			var realDestination = statement.destination;
+
+			if (statement.IsSetterLink) {
+				var expressionNode = new Node();
+				Emit (expressionNode, ByteCode.Label, RegisterLabel());
+				expressionNode.name = node.name + "option" + (optionNodeId++);
+				GenerateCode(expressionNode, statement.setterOperation);
+				Emit (expressionNode, ByteCode.RunNode, realDestination);
+				optionEvalNodes.Add (expressionNode);
+				destination = expressionNode.name;
+			}
 
 			if (statement.label == null) {
 				// this is a jump to another node

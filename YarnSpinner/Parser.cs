@@ -468,14 +468,12 @@ namespace Yarn {
 			}
 
 			// setter link metadata
-			internal string destinationVariableName { get; private set; }
-			internal Expression valueExpression { get; private set; }
-			internal TokenType operation { get; private set; }
+			internal AssignmentStatement setterOperation { get; private set; }
 
 			internal string destination { get; private set;}
 			internal string label { get; private set;}
 
-			public bool IsSetterLink { get { return destinationVariableName != null; } }
+			public bool IsSetterLink { get { return setterOperation != null; } }
 
 			internal OptionStatement(ParseNode parent, Parser p) : base(parent, p) {
 
@@ -510,10 +508,7 @@ namespace Yarn {
 
 				if( p.NextSymbolIs(TokenType.OptionSetDelimit) ) {
 					p.ExpectSymbol(TokenType.OptionSetDelimit);
-
-					destinationVariableName = p.ExpectSymbol(TokenType.Variable).value as string;
-					operation = p.ExpectSymbol(AssignmentStatement.validOperators).type;
-					valueExpression = Expression.Parse(this, p);
+					setterOperation = new AssignmentStatement(parent, p, false);
 				}
 					
 
@@ -532,7 +527,12 @@ namespace Yarn {
 				}
 
 				if (this.IsSetterLink) {
-					result += string.Format ("[{0} {1} {2}]", destinationVariableName, operation, valueExpression);
+					result += string.Format (
+						"[{0} {1} {2}]", 
+						setterOperation.destinationVariableName, 
+						setterOperation.operation, 
+						setterOperation.valueExpression
+					);
 				}
 
 				return result;
@@ -1117,14 +1117,17 @@ namespace Yarn {
 				TokenType.MultiplyAssign
 			};
 
-			internal AssignmentStatement(ParseNode parent, Parser p) : base(parent, p) {
-
-				p.ExpectSymbol(TokenType.BeginCommand);
-				p.ExpectSymbol(TokenType.Set);
+			internal AssignmentStatement(ParseNode parent, Parser p, bool withinCommand = true) : base(parent, p) {
+				if( withinCommand ) {
+					p.ExpectSymbol(TokenType.BeginCommand);
+					p.ExpectSymbol(TokenType.Set);
+				}
 				destinationVariableName = p.ExpectSymbol(TokenType.Variable).value as string;
 				operation = p.ExpectSymbol(validOperators).type;
 				valueExpression = Expression.Parse(this, p);
-				p.ExpectSymbol(TokenType.EndCommand);
+				if( withinCommand ) {
+					p.ExpectSymbol(TokenType.EndCommand);
+				}
 
 			}
 

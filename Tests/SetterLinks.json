@@ -12,7 +12,7 @@
 	{
 		"title": "option0",
 		"tags": "",
-		"body": "Option0 selected",
+		"body": "Option0 selected\n[[final][$prevSelected = $selected]]",
 		"position": {
 			"x": 508,
 			"y": 215
@@ -22,7 +22,7 @@
 	{
 		"title": "option1",
 		"tags": "",
-		"body": "Option 1 selected\n",
+		"body": "Option 1 selected\n[[final][$prevSelected = $selected]]\n",
 		"position": {
 			"x": 721,
 			"y": 211
@@ -32,7 +32,17 @@
 	{
 		"title": "option2",
 		"tags": "",
-		"body": "Option 2 selected",
+		"body": "Option 2 selected\n[[final][$prevSelected = $selected]]\n",
+		"position": {
+			"x": 933,
+			"y": 207
+		},
+		"colorID": 0
+	},
+	{
+		"title": "final",
+		"tags": "",
+		"body": "WE AT THE END <<print $prevSelected $selected>>\n",
 		"position": {
 			"x": 933,
 			"y": 207
