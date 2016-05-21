@@ -224,7 +224,10 @@ namespace Yarn
 
 		public override string ToString ()
 		{
-			return string.Format ("[Value: type={0}, AsNumber={1}, AsBool={2}, AsString={3}]", type, AsNumber, AsBool, AsString);
+			if (this.backingValue != null) {
+				return this.backingValue.ToString ();
+			}
+			return "null";
 		}
 
 		public static Value operator+ (Value a, Value b) {
